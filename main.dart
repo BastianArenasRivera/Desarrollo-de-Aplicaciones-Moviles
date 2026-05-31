@@ -1,51 +1,68 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'firebase_options.dart';
 
-void main() {
+import 'screens/login_page.dart';
+import 'screens/cliente_portal.dart';
+import 'screens/dashboard_home.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
+    const Color cafeBrillante = Color(0xFFD2691E);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Taller Mecánico App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
+      title: 'Bamajo Motors',
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: const Color(0xFF121212),
+        appBarTheme: const AppBarTheme(backgroundColor: Colors.black, foregroundColor: Colors.white, centerTitle: true),
+        colorScheme: const ColorScheme.dark(primary: cafeBrillante, secondary: Colors.grey),
+        elevatedButtonTheme: ElevatedButtonThemeData(style: ElevatedButton.styleFrom(backgroundColor: cafeBrillante, foregroundColor: Colors.white)),
+        inputDecorationTheme: const InputDecorationTheme(
+          focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: cafeBrillante, width: 2)),
+          labelStyle: TextStyle(color: Colors.grey),
+          floatingLabelStyle: TextStyle(color: cafeBrillante),
+        ),
       ),
-      home: const HomeScreen(),
+      home: const SplashScreen(),
     );
   }
 }
 
-// --- 1. VENTANA DE INICIO  ---
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+  @override State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 3), () {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AuthWrapper()));
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Gestión del Taller")),
-      drawer: const MenuLateral(),
+      backgroundColor: const Color(0xFFF08A00),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.settings_suggest, size: 100, color: Colors.blue),
-            const SizedBox(height: 20),
-            const Text("Panel de Administración", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            const Padding(
-              padding: EdgeInsets.all(20.0),
-              child: Text("Bienvenido. Selecciona una opción del menú lateral para comenzar.", textAlign: TextAlign.center),
-            ),
-            ElevatedButton.icon(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ListaTrabajos())),
-              icon: const Icon(Icons.list),
-              label: const Text("Ver Trabajos Pendientes"),
-            )
+            Image.asset('images/logo.jpg', height: 200, fit: BoxFit.contain),
+            const SizedBox(height: 30),
+            const CircularProgressIndicator(color: Colors.black),
           ],
         ),
       ),
@@ -53,142 +70,83 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// --- MENU LATERAL PARA NAVEGACIÓN ---
-class MenuLateral extends StatelessWidget {
-  const MenuLateral({super.key});
-
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
   @override
   Widget build(BuildContext context) {
-    return Drawer(
-      child: ListView(
-        children: [
-          const DrawerHeader(
-            decoration: BoxDecoration(color: Colors.blue),
-            child: Text("Taller Mecánico v1.0", style: TextStyle(color: Colors.white, fontSize: 24)),
-          ),
-          ListTile(
-            leading: const Icon(Icons.home),
-            title: const Text("Inicio"),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const HomeScreen())),
-          ),
-          ListTile(
-            leading: const Icon(Icons.car_repair),
-            title: const Text("Registro de Vehículos"),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const RegistroVehiculo())),
-          ),
-          ListTile(
-            leading: const Icon(Icons.assignment),
-            title: const Text("Lista de Trabajos"),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ListaTrabajos())),
-          ),
-          ListTile(
-            leading: const Icon(Icons.inventory),
-            title: const Text("Inventario Repuestos"),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const Inventario())),
-          ),
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: const Text("Perfil Taller"),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PerfilTaller())),
-          ),
-        ],
-      ),
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        
+        if (snapshot.hasData) {
+          return FutureBuilder<DocumentSnapshot>(
+            future: FirebaseFirestore.instance.collection('users').doc(snapshot.data!.uid).get(),
+            builder: (context, userSnap) {
+              if (userSnap.connectionState == ConnectionState.waiting) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+              if (!userSnap.hasData || !userSnap.data!.exists) {
+                FirebaseAuth.instance.signOut();
+                return const RoleSelectionScreen(); 
+              }
+              var data = userSnap.data!.data() as Map<String, dynamic>? ?? {};
+              String rolSeguro = data['rol'] ?? 'Mecánico';
+              String nombreSeguro = data['nombre'] ?? 'Usuario Desconocido';
+              
+              return HomeScreen(rol: rolSeguro, nombre: nombreSeguro);
+            },
+          );
+        }
+        return const RoleSelectionScreen();
+      },
     );
   }
 }
 
-// --- 2. VENTANA REGISTRO DE VEHÍCULOS ---
-class RegistroVehiculo extends StatefulWidget {
-  const RegistroVehiculo({super.key});
-
-  @override
-  State<RegistroVehiculo> createState() => _RegistroVehiculoState();
-}
-
-class _RegistroVehiculoState extends State<RegistroVehiculo> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Nuevo Ingreso")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const TextField(decoration: InputDecoration(labelText: "Patente")),
-            const TextField(decoration: InputDecoration(labelText: "Marca y Modelo")),
-            const TextField(decoration: InputDecoration(labelText: "Nombre del Cliente")),
-            const SizedBox(height: 20),
-            ElevatedButton(onPressed: () {}, child: const Text("Registrar Auto"))
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// --- 3. VENTANA LISTA DE TRABAJOS  ---
-class ListaTrabajos extends StatelessWidget {
-  const ListaTrabajos({super.key});
+class RoleSelectionScreen extends StatelessWidget {
+  const RoleSelectionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    const Color colorFondo = Color(0xFFF08A00);
     return Scaffold(
-      appBar: AppBar(title: const Text("Trabajos en Curso")),
-      body: ListView(
-        children: const [
-          ListTile(leading: Icon(Icons.build), title: Text("Kia Morning - Cambio Aceite"), subtitle: Text("Estado: En espera")),
-          ListTile(leading: Icon(Icons.build), title: Text("Toyota Hilux - Frenos"), subtitle: Text("Estado: En proceso")),
-          ListTile(leading: Icon(Icons.check_circle, color: Colors.green), title: Text("Hyundai Accent - Luces"), subtitle: Text("Estado: Terminado")),
-        ],
-      ),
-    );
-  }
-}
-
-// --- 4. VENTANA INVENTARIO ---
-class Inventario extends StatelessWidget {
-  const Inventario({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Stock de Repuestos")),
-      body: GridView.count(
-        crossAxisCount: 2,
-        padding: const EdgeInsets.all(10),
-        children: const [
-          Card(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.oil_barrel, size: 50), Text("Aceite 10W40")])),
-          Card(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.tire_repair, size: 50), Text("Neumáticos")])),
-          Card(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.battery_charging_full, size: 50), Text("Baterías")])),
-          Card(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.filter_alt, size: 50), Text("Filtros Aire")])),
-        ],
-      ),
-    );
-  }
-}
-
-// --- 5. VENTANA PERFIL TALLER ---
-class PerfilTaller extends StatelessWidget {
-  const PerfilTaller({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Configuración")),
-      body: const Center(
-        child: Column(
-          children: [
-            SizedBox(height: 30),
-            CircleAvatar(
-              radius: 50,
-              backgroundImage: AssetImage('assets/logo_taller.png'), 
-            ),
-            SizedBox(height: 10),
-            Text("Taller Mecánico Central", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            Text("Sede: Talca"),
-            ListTile(leading: Icon(Icons.phone), title: Text("+56 9 5518052")),
-            ListTile(leading: Icon(Icons.email), title: Text("contacto@taller.cl")),
-          ],
+      backgroundColor: colorFondo,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset('images/logo.jpg', height: 200, fit: BoxFit.contain),
+              const SizedBox(height: 30),
+              const Text("Bienvenido a Bamajo Motors", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black)),
+              const Text("Selecciona tu perfil para ingresar", style: TextStyle(fontSize: 16, color: Colors.black87)),
+              const SizedBox(height: 40),
+              
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black, foregroundColor: colorFondo,
+                  minimumSize: const Size.fromHeight(60), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+                ),
+                icon: const Icon(Icons.build, size: 28),
+                label: const Text("Soy Trabajador", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginPage()));
+                },
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white, foregroundColor: Colors.black,
+                  minimumSize: const Size.fromHeight(60), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+                ),
+                icon: const Icon(Icons.person, size: 28),
+                label: const Text("Soy Cliente", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const ClienteLoginScreen()));
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
