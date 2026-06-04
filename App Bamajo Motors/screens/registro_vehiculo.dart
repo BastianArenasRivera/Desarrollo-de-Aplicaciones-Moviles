@@ -22,7 +22,7 @@ class _RegistroVehiculoState extends State<RegistroVehiculo> {
   
   final _rutClienteCtrl = TextEditingController(); 
   final _telClienteCtrl = TextEditingController(); 
-  final _emailClienteCtrl = TextEditingController(); // 🔥 NUEVO: Correo del cliente
+  final _emailClienteCtrl = TextEditingController(); 
   final _patente = TextEditingController(); 
   final _marca = TextEditingController(); 
   final _modelo = TextEditingController(); 
@@ -36,7 +36,7 @@ class _RegistroVehiculoState extends State<RegistroVehiculo> {
       return;
     }
 
-    // 🔥 Validación estricta: Exactamente 9 dígitos
+    
     String tel = _telClienteCtrl.text.trim();
     if (tel.length != 9 || !tel.startsWith('9')) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("El teléfono debe tener EXACTAMENTE 9 dígitos y empezar con 9"), backgroundColor: Colors.red));
@@ -58,7 +58,7 @@ class _RegistroVehiculoState extends State<RegistroVehiculo> {
     await FirebaseFirestore.instance.collection('vehiculos').add({
       'rut_cliente': _rutClienteCtrl.text.trim(), 
       'telefono_cliente': tel, 
-      'email_cliente': _emailClienteCtrl.text.trim(), // 🔥 Guardamos el correo
+      'email_cliente': _emailClienteCtrl.text.trim(), 
       'patente': _patente.text.trim(), 
       'marca': _marca.text.trim(), 
       'modelo': _modelo.text.trim(), 
