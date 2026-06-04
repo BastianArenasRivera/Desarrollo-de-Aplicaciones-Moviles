@@ -74,7 +74,7 @@ class AutosActivosScreen extends StatelessWidget {
                     'estado': estadoSel,
                   };
 
-                  // 🔥 Si el jefe seleccionó un mecánico nuevo, actualiza los datos
+                  
                   if (nuevoMecanicoId != null) {
                     var userDoc = await FirebaseFirestore.instance.collection('users').doc(nuevoMecanicoId).get();
                     if (userDoc.exists) {
