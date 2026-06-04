@@ -42,7 +42,7 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // 🔥 NUEVO: Función segura de recuperación de contraseña con Pop-Up
+
   void _mostrarDialogoRecuperacion() {
     final correoRecuperacionCtrl = TextEditingController(text: _emailCtrl.text.trim());
 
@@ -187,7 +187,7 @@ class _LoginPageState extends State<LoginPage> {
                 
                 const SizedBox(height: 15),
                 TextButton(
-                  onPressed: _mostrarDialogoRecuperacion, // 🔥 Llamamos al pop-up
+                  onPressed: _mostrarDialogoRecuperacion, 
                   child: const Text("¿Olvidaste tu contraseña?", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16, decoration: TextDecoration.underline)),
                 )
               ],
