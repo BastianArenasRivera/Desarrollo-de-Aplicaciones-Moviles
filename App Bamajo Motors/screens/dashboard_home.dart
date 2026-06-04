@@ -31,7 +31,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Panel Principal"),
-        // 🔥 ELIMINADA LA VARITA MÁGICA
+        
       ), 
       drawer: MenuLateral(rol: rol, nombre: nombre),
       body: StreamBuilder<QuerySnapshot>(
@@ -475,7 +475,7 @@ class _TrabajoCardWidgetState extends State<TrabajoCardWidget> {
                   var itemDoc = snapshot.data!.docs[i];
                   var item = itemDoc.data() as Map<String, dynamic>;
                   return ListTile(
-                    // 🔥 NUEVO: Mostrar detalles completos del artículo para evitar confusiones
+                    
                     title: Text(item['nombre'], style: const TextStyle(fontWeight: FontWeight.bold)),
                     subtitle: Text("Tipo: ${item['tipo']}\nSpecs: ${item['especificaciones']}\nStock: ${item['cantidad']}", style: const TextStyle(color: Colors.amber)),
                     isThreeLine: true,
