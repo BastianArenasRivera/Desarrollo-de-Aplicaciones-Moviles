@@ -46,14 +46,14 @@ class ListaPersonalScreen extends StatelessWidget {
                   const SizedBox(height: 10),
                   TextField(
                     controller: rutCtrl, 
-                    inputFormatters: [RutFormatter()], // 🔥 RUT Formateado
+                    inputFormatters: [RutFormatter()], 
                     decoration: const InputDecoration(labelText: "RUT")
                   ),
                   const SizedBox(height: 10),
                   TextField(
                     controller: telefonoCtrl, 
                     keyboardType: TextInputType.number, 
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(9)], // 🔥 Límite de 9
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(9)], 
                     decoration: const InputDecoration(labelText: "Teléfono (Debe empezar con 9)")
                   ),
                   const SizedBox(height: 10),
@@ -74,7 +74,7 @@ class ListaPersonalScreen extends StatelessWidget {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
                 onPressed: () async {
-                  // 🔥 Validación de Teléfono en edición
+                  
                   String tel = telefonoCtrl.text.trim();
                   if (tel.length != 9 || !tel.startsWith('9')) {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("El teléfono debe tener 9 dígitos y empezar con 9"), backgroundColor: Colors.red));
@@ -219,7 +219,7 @@ class _RegistroPersonalState extends State<RegistroPersonal> {
       return;
     }
 
-    // 🔥 Validación estricta del Teléfono en registro
+    
     String tel = _telefonoCtrl.text.trim();
     if (tel.length != 9 || !tel.startsWith('9')) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("El teléfono debe tener 9 dígitos y empezar con 9"), backgroundColor: Colors.red));
