@@ -45,7 +45,7 @@ class _ClienteLoginScreenState extends State<ClienteLoginScreen> {
     return Scaffold(
       backgroundColor: colorFondo,
       appBar: AppBar(backgroundColor: Colors.black, title: const Text("Acceso Clientes")),
-      // 🔥 SOLUCIÓN OVERFLOW: Envolver en un Center > SingleChildScrollView
+      
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -58,7 +58,7 @@ class _ClienteLoginScreenState extends State<ClienteLoginScreen> {
               const SizedBox(height: 30),
               TextField(
                 controller: _rutCtrl, 
-                inputFormatters: [RutFormatter()], // 🔥 Aplicamos RUT
+                inputFormatters: [RutFormatter()], 
                 style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                 decoration: InputDecoration(
                   labelText: "Ingresa tu RUT (Se formatea solo)", labelStyle: const TextStyle(color: Colors.black87),
