@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:url_launcher/url_launcher.dart'; // 🔥 Importación obligatoria para correos y descargas
+import 'package:url_launcher/url_launcher.dart'; // 
 import 'dashboard_home.dart' show buildEmptyStateMensaje;
 
 class VehiculosTerminadosScreen extends StatelessWidget {
